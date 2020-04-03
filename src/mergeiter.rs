@@ -77,30 +77,6 @@ impl<T: Iterator> Iterator for SortedChain<T> where T::Item : Ord {
             None
         }
     }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let mut queue_iter = self.queue.iter();
-        let (mut min, mut max) = if let Some(Reverse(peeked_iter)) = queue_iter.next() {
-            peeked_iter.iterator.size_hint()
-        } else {
-            return (0, Some(0));
-        };
-        for reversed_peeked_iter in queue_iter {
-            let Reverse(peeked_iter) = reversed_peeked_iter;
-            let (iter_min, iter_max) = peeked_iter.iterator.size_hint();
-            min = usize::checked_add(min, iter_min).unwrap_or(usize::max_value());
-            max = if let(Some(i), Some(j)) = (max, iter_max) {
-                // We'll only return a value in the case that both iterators have
-                // an upper bound and they don't overflow when we add them
-                // together (this is the most likely case).
-                usize::checked_add(i, j)
-            } else {
-                None
-            }
-        }
-
-        (min, max)
-    }
 }
 
 /**
