@@ -33,6 +33,8 @@ impl<T: Iterator> PartialEq for PeekedIter<T> where T::Item: Ord {
 }
 
 
+// Ascending-sorted iterator over N ascending-sorted iterators, with log(N)
+// implementation of next().
 struct SortedMergeIter<T: Iterator> where T::Item: Ord {
     // A min-heap (thanks to Reverse) that'll tell us the next smallest value
     // that's waiting for us among our iterators.
@@ -45,7 +47,7 @@ impl<T: Iterator> SortedMergeIter<T> where T::Item: Ord {
     // compiler to not consider this implementation as conflicting with the
     // definition of From<T> for T... I think it's possible, but this is fine
     // for the time being.
-    fn from_iterators<I: IntoIterator<IntoIter = T, Item = T::Item>, A: IntoIterator<Item = I>>(containers: A) -> SortedMergeIter<T> {
+    fn from<I: IntoIterator<IntoIter = T, Item = T::Item>, A: IntoIterator<Item = I>>(containers: A) -> SortedMergeIter<T> {
         // Could look at iterators.size_hint() and then use with_capacity...
         let mut result = SortedMergeIter::<T> { queue: std::collections::BinaryHeap::new() };
         for container in containers.into_iter() {
@@ -98,47 +100,6 @@ impl<T: Iterator> Iterator for SortedMergeIter<T> where T::Item : Ord {
                 None
             }
         }
-
-        (min, max)
-    }
-}
-
-
-// Merges two ascending-sorted iterators into a single ascending-sorted
-// iterator. Only used internally, so it's not designed to be particularly
-// ergonomic.
-struct SortedMergedIter<T: Iterator> where T::Item : PartialOrd {
-    left: std::iter::Peekable<T>,
-    right: std::iter::Peekable<T>,
-}
-
-
-impl<T: Iterator> Iterator for SortedMergedIter<T> where T::Item : PartialOrd {
-    type Item = T::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match (self.left.peek(), self.right.peek()) {
-            (Some(l), Some(r)) if l > r => self.right.next(),
-            (Some(_), Some(_)) => self.left.next(),
-            (Some(_), None) => self.left.next(),
-            (None, Some(_)) => self.right.next(),
-            (None, None) => None,
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let (left_min, left_max) = self.left.size_hint();
-        let (right_min, right_max) = self.right.size_hint();
-
-        let min = usize::checked_add(left_min, right_min).unwrap_or(usize::max_value());
-        let max = if let (Some(l), Some(r)) = (left_max, right_max) {
-            // We'll only return a value in the case that both iterators have
-            // an upper bound and they don't overflow when we add them
-            // together (this is the most likely case).
-            usize::checked_add(l, r)
-        } else {
-            None
-        };
 
         (min, max)
     }
@@ -200,10 +161,8 @@ impl<'a, T: 'a + Ord + Clone> VecSpet<T> {
 
 
     fn union(&self, other: &VecSpet<T>) -> VecSpet<T> {
-        VecSpet::collect_from_sorted(SortedMergedIter {
-            left: self.iter().peekable(),
-            right: other.iter().peekable(),
-        })
+        VecSpet::collect_from_sorted(
+            SortedMergeIter::from([self.iter(), other.iter()].iter_mut()))
     }
 
     // Worst case is O(n*log(n)), best case is O(n) (amortized since we're
@@ -299,7 +258,7 @@ impl<T: Ord> IntoIterator for VecSpet<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Span, VecSpet, SortedMergedIter, SortedMergeIter};
+    use crate::{Span, VecSpet, SortedMergeIter};
 
     fn create_spans(tuple: Vec<(usize, usize)>) -> Vec<Span<usize>> {
         tuple.into_iter()
@@ -308,20 +267,8 @@ mod tests {
     }
 
     #[test]
-    fn sorted_merged_iter() {
-        let a = vec![0, 1, 2, 3, 4];
-        let b = vec![3, 4, 5, 6, 7];
-        let merged = SortedMergedIter {
-            left: a.into_iter().peekable(),
-            right: b.into_iter().peekable()
-        };
-        assert_eq!(merged.collect::<Vec<_>>(),
-                   vec![0, 1, 2, 3, 3, 4, 4, 5, 6, 7]);
-    }
-
-    #[test]
-    fn foo() {
-        let result = SortedMergeIter::from_iterators(vec![
+    fn sorted_merge_iter() {
+        let result = SortedMergeIter::from(vec![
             vec![1, 4],
             vec![1, 2],
             vec![1, 3],
