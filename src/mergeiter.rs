@@ -81,9 +81,6 @@ impl<T: Iterator> Iterator for SortedChain<T> where T::Item : Ord {
 
 /**
  * Creates a SortedChain from an iterable of iterables of T.
- *
- * For example, you could call
- * SortedChain::<i32>::from(vec![vec![1, 2], vec![3, 4]]).
  */
 pub fn sorted_chain<
         T: Iterator,
