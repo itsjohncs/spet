@@ -1,6 +1,7 @@
 mod mergeiter;
 mod span;
 mod points;
+mod vecspet;
 use span::{Span, CreatableSpan};
 
 // #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
@@ -10,87 +11,87 @@ use span::{Span, CreatableSpan};
 // }
 
 
-struct VecSpet<S: Span> {
-    spans: Vec<S>
-}
+// struct VecSpet<S: Span> {
+//     spans: Vec<S>
+// }
 
 
-impl<'a, S: 'a + Span + CreatableSpan> VecSpet<S> where S::Domain: Clone {
-    /**
-     * Creates a new VecSpet from a sorted iterator of spans.
-     */
-    fn collect_from_sorted(mut iter: impl Iterator<Item = &'a S>) -> VecSpet<S> {
-        let mut spans = Vec::<S>::new();
+// impl<'a, S: 'a + Span + CreatableSpan> VecSpet<S> where S::Domain: Clone {
+//     /**
+//      * Creates a new VecSpet from a sorted iterator of spans.
+//      */
+//     fn collect_from_sorted(mut iter: impl Iterator<Item = &'a S>) -> VecSpet<S> {
+//         let mut spans = Vec::<S>::new();
 
-        let first_span = if let Some(span) = iter.next() {
-            span
-        } else {
-            return VecSpet { spans };
-        };
+//         let first_span = if let Some(span) = iter.next() {
+//             span
+//         } else {
+//             return VecSpet { spans };
+//         };
 
-        // start and end are candidate values for the next span we'll
-        // push onto our vector.
-        let mut start = first_span.start();
-        let mut end = first_span.end();
+//         // start and end are candidate values for the next span we'll
+//         // push onto our vector.
+//         let mut start = first_span.start();
+//         let mut end = first_span.end();
 
-        for span in iter {
-            // If the span doesn't intersect with our candidate span
-            // (Span { start, end })...
-            if span.start() > end {
-                // We create the candidate because it won't be extended anymore
-                // (no other span is going to start before this one since we're
-                // iterating over start values in ascending order).
-                spans.push(S::create(start.clone(), end.clone()));
-                start = &span.start();
-                end = &span.end();
-            } else {
-                // Union our candidate with the current span (extending it if
-                // necessary).
-                end = Ord::max(end, span.end());
-            }
-        }
+//         for span in iter {
+//             // If the span doesn't intersect with our candidate span
+//             // (Span { start, end })...
+//             if span.start() > end {
+//                 // We create the candidate because it won't be extended anymore
+//                 // (no other span is going to start before this one since we're
+//                 // iterating over start values in ascending order).
+//                 spans.push(S::create(start.clone(), end.clone()));
+//                 start = &span.start();
+//                 end = &span.end();
+//             } else {
+//                 // Union our candidate with the current span (extending it if
+//                 // necessary).
+//                 end = Ord::max(end, span.end());
+//             }
+//         }
 
-        spans.push(S::create(start.clone(), end.clone()));
+//         spans.push(S::create(start.clone(), end.clone()));
 
-        VecSpet {spans}
-    }
-
-
-    fn iter(&self) -> std::slice::Iter<S> {
-        self.spans.iter()
-    }
+//         VecSpet {spans}
+//     }
 
 
-    fn union(&self, other: &VecSpet<S>) -> VecSpet<S> {
-        VecSpet::collect_from_sorted(
-            mergeiter::sorted_chain([self.iter(), other.iter()].iter_mut()))
-    }
-}
+//     fn iter(&self) -> std::slice::Iter<S> {
+//         self.spans.iter()
+//     }
 
 
-// impl<T: Ord + Clone> From<Vec<Span<T>>> for VecSpet<T> {
-//     fn from(mut vector: Vec<Span<T>>) -> VecSpet<T> {
-//         vector.sort_unstable();
-//         VecSpet::collect_from_sorted(vector.iter())
+//     fn union(&self, other: &VecSpet<S>) -> VecSpet<S> {
+//         VecSpet::collect_from_sorted(
+//             mergeiter::sorted_chain([self.iter(), other.iter()].iter_mut()))
 //     }
 // }
 
 
-// impl<T: Ord + Clone> Into<Vec<Span<T>>> for VecSpet<T> {
-//     fn into(self) -> Vec<Span<T>> {
-//         self.spans
+// // impl<T: Ord + Clone> From<Vec<Span<T>>> for VecSpet<T> {
+// //     fn from(mut vector: Vec<Span<T>>) -> VecSpet<T> {
+// //         vector.sort_unstable();
+// //         VecSpet::collect_from_sorted(vector.iter())
+// //     }
+// // }
+
+
+// // impl<T: Ord + Clone> Into<Vec<Span<T>>> for VecSpet<T> {
+// //     fn into(self) -> Vec<Span<T>> {
+// //         self.spans
+// //     }
+// // }
+
+
+// impl<S: Span> IntoIterator for VecSpet<S> {
+//     type Item = S;
+//     type IntoIter = std::vec::IntoIter<Self::Item>;
+
+//     fn into_iter(self) -> Self::IntoIter {
+//         self.spans.into_iter()
 //     }
 // }
-
-
-impl<S: Span> IntoIterator for VecSpet<S> {
-    type Item = S;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.spans.into_iter()
-    }
-}
 
 
 // struct SpetPivotIterator<T: Ord, I: Iterator<Item = Span<T>> {
