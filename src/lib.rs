@@ -1,7 +1,7 @@
 mod mergeiter;
 mod span;
-mod pivots;
-use span::Span;
+mod points;
+use span::{Span, CreatableSpan};
 
 // #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
 // struct SimpleSpan<T> {
@@ -15,7 +15,7 @@ struct VecSpet<S: Span> {
 }
 
 
-impl<'a, S: 'a + Span> VecSpet<S> where S::Domain: Clone {
+impl<'a, S: 'a + Span + CreatableSpan> VecSpet<S> where S::Domain: Clone {
     /**
      * Creates a new VecSpet from a sorted iterator of spans.
      */
