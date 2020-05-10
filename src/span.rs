@@ -29,15 +29,15 @@ impl<T: Ord + Copy> Span for SimpleSpan<T> {
 }
 
 
-impl<'a, T: Ord + Copy> Span for &'a SimpleSpan<T> {
-    type Domain = T;
+impl<'a, T: Span> Span for &'a T {
+    type Domain = T::Domain;
 
     fn start(&self) -> &Self::Domain {
-        &self.start
+        (*self).start()
     }
 
     fn end(&self) -> &Self::Domain {
-        &self.end
+        (*self).end()
     }
 }
 

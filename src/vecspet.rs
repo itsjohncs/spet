@@ -1,22 +1,25 @@
 use std::fmt::Debug;
 use crate::span::{Span, CreatableSpan};
 use crate::points::{enumerate_points, Point::{StartOf, EndOf}};
+use crate::mergeiter::sorted_chain;
 
 
 #[derive(PartialEq, Eq)]
-struct VecSpet<S: Span + CreatableSpan> {
+struct VecSpet<S: Span + CreatableSpan> where S::Domain: Clone {
     spans: Vec<S>
 }
 
 
-impl<S: Span + CreatableSpan + Debug> Debug for VecSpet<S> {
+impl<S: Span + CreatableSpan + Debug> Debug for VecSpet<S>
+        where S::Domain: Clone {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_set().entries(self.spans.iter()).finish()
     }
 }
 
 
-impl<S: Span + CreatableSpan> VecSpet<S> {
+impl<S: Span + CreatableSpan> VecSpet<S>
+        where S::Domain: Clone {
     fn collect_from_sorted<T: IntoIterator>(iterable: T) -> VecSpet<S>
             where T::Item: Span + Clone,
                   <T::Item as Span>::Domain: Into<S::Domain> + Clone {
@@ -47,6 +50,11 @@ impl<S: Span + CreatableSpan> VecSpet<S> {
         }
 
         VecSpet { spans }
+    }
+
+    fn union(&self, other: &VecSpet<S>) -> VecSpet<S> {
+        Self::collect_from_sorted(
+            sorted_chain(&mut [self.spans.iter(), other.spans.iter()]))
     }
 }
 
@@ -134,6 +142,20 @@ mod tests {
             assert_eq!(result.spans, vec![
                 SimpleSpan::create(1, 2),
             ]);
+        }
+    }
+
+    mod union {
+        use crate::vecspet::VecSpet;
+        use crate::span::{SimpleSpan, CreatableSpan};
+
+        #[test]
+        fn simple() {
+            let a = VecSpet { spans: vec![SimpleSpan::create(1, 5)] };
+            let b = VecSpet { spans: vec![SimpleSpan::create(3, 7)] };
+
+            let result = a.union(&b);
+            assert_eq!(result.spans, vec![SimpleSpan::create(1, 7)]);
         }
     }
 }
