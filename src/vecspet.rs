@@ -5,7 +5,7 @@ use crate::mergeiter::sorted_chain;
 
 
 #[derive(PartialEq, Eq)]
-struct VecSpet<S: Span + CreatableSpan> where S::Domain: Clone {
+pub struct VecSpet<S: Span + CreatableSpan> where S::Domain: Clone {
     spans: Vec<S>
 }
 
