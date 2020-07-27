@@ -71,7 +71,7 @@ impl<S: Span> PartialOrd for OrderableEndPoint<S> {
  * This ends up being a building block that most/all set operations can be
  * built upon.
  */
-pub struct PointIterator<I: Iterator> where I::Item: Span + Clone {
+pub struct PointIterator<I: Iterator> where I::Item: Span {
     // This iterator must give spans in ascending order of each span's start
     // (it does not matter whether the end is a secondary sort key).
     iterator: I,
@@ -99,7 +99,7 @@ pub struct PointIterator<I: Iterator> where I::Item: Span + Clone {
 }
 
 
-impl<I: Iterator> Iterator for PointIterator<I> where I::Item: Span + Clone {
+impl<I: Iterator> Iterator for PointIterator<I> where I::Item: Span {
     type Item = Point<I::Item>;
 
     fn next(&mut self) -> Option<Self::Item> {
