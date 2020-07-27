@@ -171,8 +171,8 @@ mod tests {
     #[test]
     fn consuming_iter() {
         let spans: Vec<SimpleSpan<usize>> = vec![
-            SimpleSpan::create(1, 2),
-            SimpleSpan::create(1, 3),
+            SimpleSpan::new(1, 2),
+            SimpleSpan::new(1, 3),
         ];
 
         // This makes implicit copies, which is important because we're going
@@ -190,8 +190,8 @@ mod tests {
     #[test]
     fn visiting_iter() {
         let spans: Vec<SimpleSpan<usize>> = vec![
-            SimpleSpan::create(1, 2),
-            SimpleSpan::create(1, 3),
+            SimpleSpan::new(1, 2),
+            SimpleSpan::new(1, 3),
         ];
 
         assert_eq!(enumerate_points(&spans).collect::<Vec<_>>(), vec![
@@ -205,8 +205,8 @@ mod tests {
     #[test]
     fn subset() {
         let spans: Vec<SimpleSpan<usize>> = vec![
-            SimpleSpan::create(1, 4),
-            SimpleSpan::create(2, 3),
+            SimpleSpan::new(1, 4),
+            SimpleSpan::new(2, 3),
         ];
 
         assert_eq!(enumerate_points(&spans).collect::<Vec<_>>(), vec![
@@ -222,11 +222,11 @@ mod tests {
         // This is the worst case because the binary heap grows to its maximum
         // size of N.
         let spans: Vec<SimpleSpan<usize>> = vec![
-            SimpleSpan::create(1, 10),
-            SimpleSpan::create(2, 9),
-            SimpleSpan::create(3, 8),
-            SimpleSpan::create(4, 7),
-            SimpleSpan::create(5, 6),
+            SimpleSpan::new(1, 10),
+            SimpleSpan::new(2, 9),
+            SimpleSpan::new(3, 8),
+            SimpleSpan::new(4, 7),
+            SimpleSpan::new(5, 6),
         ];
 
         assert_eq!(enumerate_points(&spans).collect::<Vec<_>>(), vec![
@@ -246,8 +246,8 @@ mod tests {
     #[test]
     fn non_overlapping() {
         let spans: Vec<SimpleSpan<usize>> = vec![
-            SimpleSpan::create(1, 2),
-            SimpleSpan::create(4, 5),
+            SimpleSpan::new(1, 2),
+            SimpleSpan::new(4, 5),
         ];
 
         assert_eq!(enumerate_points(&spans).collect::<Vec<_>>(), vec![
@@ -268,7 +268,7 @@ mod tests {
     #[test]
     fn single() {
         let spans: Vec<SimpleSpan<usize>> = vec![
-            SimpleSpan::create(1, 2),
+            SimpleSpan::new(1, 2),
         ];
 
         assert_eq!(enumerate_points(&spans).collect::<Vec<_>>(), vec![

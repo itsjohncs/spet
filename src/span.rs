@@ -42,16 +42,16 @@ impl<'a, T: Span> Span for &'a T {
 }
 
 
-// If I put create() on the Span trait, I wouldn't be able to have all
+// If I put new() on the Span trait, I wouldn't be able to have all
 // references to a Span also implement Span, since I couldn't have a function
 // that returns a reference to an object it allocated.
 pub trait CreatableSpan: Span {
-    fn create(start: Self::Domain, end: Self::Domain) -> Self;
+    fn new(start: Self::Domain, end: Self::Domain) -> Self;
 }
 
 
 impl<T: Ord + Copy> CreatableSpan for SimpleSpan<T> {
-    fn create(start: T, end: T) -> Self {
+    fn new(start: T, end: T) -> Self {
         SimpleSpan { start, end }
     }
 }
