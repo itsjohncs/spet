@@ -58,6 +58,10 @@ impl<S: CreatableSpan> VecSpet<S> {
         Self::from_sorted_iter(
             sorted_chain(&mut [self.spans.iter(), other.spans.iter()]))
     }
+
+    pub fn intersection(&self, other: &VecSpet<S>) -> VecSpet<S> {
+        crate::overlapping::n_overlapping(2, vec![self, other])
+    }
 }
 
 
@@ -67,6 +71,16 @@ impl<S: CreatableSpan> IntoIterator for VecSpet<S> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.spans.into_iter()
+    }
+}
+
+
+impl<'a, S: CreatableSpan> IntoIterator for &'a VecSpet<S> {
+    type Item = &'a S;
+    type IntoIter = std::slice::Iter<'a, S>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.spans.iter()
     }
 }
 
@@ -168,6 +182,20 @@ mod tests {
 
             let result = a.union(&b);
             assert_eq!(result.spans, vec![SimpleSpan::new(1, 7)]);
+        }
+    }
+
+    mod intersection {
+        use crate::vecspet::VecSpet;
+        use crate::span::{SimpleSpan, CreatableSpan};
+
+        #[test]
+        fn simple() {
+            let a = VecSpet { spans: vec![SimpleSpan::new(1, 5)] };
+            let b = VecSpet { spans: vec![SimpleSpan::new(3, 7)] };
+
+            let result = a.intersection(&b);
+            assert_eq!(result.spans, vec![SimpleSpan::new(3, 5)]);
         }
     }
 }

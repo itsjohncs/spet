@@ -4,7 +4,11 @@ use crate::points::{enumerate_points, Point};
 use crate::mergeiter::sorted_chain;
 
 
-pub fn n_overlapping<'a, T: CreatableSpan, I: IntoIterator>(
+// spets should be an iterable over Spets. Spets are containers for Spans, and
+// this function will accept other containers for spans as well (so spets could
+// be a Vec<Vec<SomeSpan>>), however in this case it's up to you to make sure
+// that each individual container of spans is sorted.
+pub fn n_overlapping<T: CreatableSpan, I: IntoIterator>(
         n: usize,
         spets: I) -> VecSpet<T>
         where I::Item: IntoIterator,
@@ -12,6 +16,11 @@ pub fn n_overlapping<'a, T: CreatableSpan, I: IntoIterator>(
               <<I::Item as IntoIterator>::Item as Span>::Domain: Into<T::Domain> {
     assert!(n > 0);
 
+    // Could (maybe) be a bit more efficient by putting the below code in an
+    // iterator and passing that iterator to from_sorted_iter, rather than
+    // growing this vector and then immediately throwing it away. Could also
+    // add a way to construct a VecSpet from an already-sorted Vec by just
+    // taking the Vec into itself.
     let mut result_spans = Vec::new();
 
     let mut num_overlapping = 0;
