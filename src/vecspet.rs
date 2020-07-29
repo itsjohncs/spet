@@ -18,13 +18,6 @@ impl<S: CreatableSpan + Debug> Debug for VecSpet<S> {
 
 
 impl<S: CreatableSpan> VecSpet<S> {
-    // Consumes a vector and transforms it into a vecspet (will not reuse the
-    // space allocated by the vector, but will sort it in-place).
-    fn from_vec(mut src: Vec<S>) -> VecSpet<S> {
-        src.sort_unstable();
-        Self::from_sorted_iter(src)
-    }
-
     // Restricting T to IntoIterator<Item=S> here wouldn't allow
     // from_sorted_iter to be run on an iterator that yields references to
     // S... a common use case. So we just make sure that we're iterating over
@@ -80,24 +73,6 @@ impl<S: CreatableSpan> IntoIterator for VecSpet<S> {
 
 #[cfg(test)]
 mod tests {
-    mod from_vec {
-        use crate::vecspet::VecSpet;
-        use crate::span::{SimpleSpan, CreatableSpan};
-
-        #[test]
-        fn unsorted() {
-            let spans = vec![
-                SimpleSpan::new(10, 12),
-                SimpleSpan::new(3, 7),
-            ];
-            let result = VecSpet::from_vec(spans);
-            assert_eq!(result.spans, vec![
-                SimpleSpan::new(3, 7),
-                SimpleSpan::new(10, 12),
-            ]);
-        }
-    }
-
     mod from_sorted_iter {
         use crate::vecspet::VecSpet;
         use crate::span::{SimpleSpan, CreatableSpan};
