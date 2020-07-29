@@ -10,6 +10,13 @@ pub struct VecSpet<S: CreatableSpan> {
 }
 
 
+impl<S: CreatableSpan> Default for VecSpet<S> {
+    fn default() -> Self {
+        Self { spans: Vec::new() }
+    }
+}
+
+
 impl<S: CreatableSpan + Debug> Debug for VecSpet<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_set().entries(self.spans.iter()).finish()
