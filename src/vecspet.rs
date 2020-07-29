@@ -62,6 +62,29 @@ impl<S: CreatableSpan> VecSpet<S> {
     pub fn intersection(&self, other: &VecSpet<S>) -> VecSpet<S> {
         crate::overlapping::n_overlapping(2, vec![self, other])
     }
+
+    pub fn filter_gaps(&self,
+            should_crush: impl Fn(&S::Domain, &S::Domain) -> bool)
+            -> VecSpet<S> {
+        let mut result: Vec<S> = Vec::new();
+        if self.spans.is_empty() {
+            return VecSpet { spans: result };
+        }
+
+        let mut pending_start = self.spans[0].start();
+        for i in 0..self.spans.len() - 1 {
+            if !should_crush(self.spans[i].end(), self.spans[i + 1].start()) {
+                result.push(S::new(pending_start.clone(),
+                            self.spans[i].end().clone()));
+                pending_start = &self.spans[i + 1].start();
+            }
+        }
+
+        result.push(
+            S::new(pending_start.clone(),
+                   self.spans[self.spans.len() - 1].end().clone()));
+        VecSpet { spans: result }
+    }
 }
 
 
@@ -196,6 +219,61 @@ mod tests {
 
             let result = a.intersection(&b);
             assert_eq!(result.spans, vec![SimpleSpan::new(3, 5)]);
+        }
+    }
+
+    mod filter_gaps {
+        use crate::vecspet::VecSpet;
+        use crate::span::{SimpleSpan, CreatableSpan};
+
+        #[test]
+        fn crush_gap() {
+            let a = VecSpet {
+                spans: vec![
+                    SimpleSpan::new(1, 2),
+                    SimpleSpan::new(4, 5),
+                ],
+            };
+
+            let result = a.filter_gaps(|a, b| {
+                assert_eq!((*a, *b), (2, 4));
+                true
+            });
+            assert_eq!(result, VecSpet {
+                spans: vec![SimpleSpan::new(1, 5)]
+            });
+        }
+
+        #[test]
+        fn crush_multiple_gaps() {
+            let a = VecSpet {
+                spans: vec![
+                    SimpleSpan::new(1, 2),
+                    SimpleSpan::new(4, 5),
+                    SimpleSpan::new(7, 10),
+                ],
+            };
+
+            let result = a.filter_gaps(|_, _| true);
+            assert_eq!(result, VecSpet {
+                spans: vec![SimpleSpan::new(1, 10)]
+            });
+        }
+
+        #[test]
+        fn leave_gap() {
+            let a = VecSpet {
+                spans: vec![
+                    SimpleSpan::new(1, 2),
+                    SimpleSpan::new(4, 5),
+                ],
+            };
+
+            let result = a.filter_gaps(|a, b| {
+                assert_eq!((*a, *b), (2, 4));
+                false
+            });
+            assert_eq!(result, a);
         }
     }
 }
