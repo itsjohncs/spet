@@ -68,6 +68,16 @@ impl<S: CreatableSpan> VecSpet<S> {
 }
 
 
+impl<S: CreatableSpan> IntoIterator for VecSpet<S> {
+    type Item = S;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.spans.into_iter()
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     mod from_vec {
