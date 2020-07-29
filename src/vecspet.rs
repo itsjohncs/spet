@@ -85,6 +85,10 @@ impl<S: CreatableSpan> VecSpet<S> {
                    self.spans[self.spans.len() - 1].end().clone()));
         VecSpet { spans: result }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.spans.is_empty()
+    }
 }
 
 
